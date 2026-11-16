@@ -42,6 +42,10 @@ html,body{height:100%;margin:0;background:#fff;font-family:-apple-system,"SF Pro
 .dock .ic span{display:none}
 #app.open{animation:zin .28s ease-out}
 @keyframes zin{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
+#home.real:before{display:none}
+#home.nf .grid{display:block;position:static}
+#home.nf #mine{position:absolute;transform:translate(-50%,-50%);width:auto}
+.ic i{width:var(--is,62px);height:var(--is,62px);font-size:calc(var(--is,62px)*.5);border-radius:calc(var(--is,62px)*.235)}
 /* APP */
 #app{display:none;height:100%;flex-direction:column;background:#fff;color:#111}
 #bar{padding:calc(env(safe-area-inset-top,0px) + 8px) 14px 8px;display:flex;align-items:center;justify-content:space-between;background:#fff}
@@ -103,7 +107,7 @@ html,body{height:100%;margin:0;background:#fff;font-family:-apple-system,"SF Pro
 <div id="pred"></div>
 
 <div id="cfg">
- <h2>Configuración</h2><p style="margin-top:-8px">Versión 5 · pantalla de inicio con icono</p>
+ <h2>Configuración</h2><p style="margin-top:-8px">Versión 6 · foto de pantalla de inicio</p>
 
  <section><h4>Código de bloqueo</h4>
   <p>6 dígitos: 1 al azar + número 1 + número 2 + 1 al azar. 8 dígitos: 2 al azar + número 1 + número 2 + 2 al azar. Ejemplo con 25 y 32: 6 dígitos → 8 2532 4, 8 dígitos → 82 2532 47.</p>
@@ -116,6 +120,15 @@ html,body{height:100%;margin:0;background:#fff;font-family:-apple-system,"SF Pro
   <label>Película para el 1.er número (primeras 2 cifras)</label><select id="fa"></select>
   <label>Película para el 2.º número (últimas 2 cifras)</label><select id="fb"></select>
   <p style="margin-top:10px">Con el forzaje apagado se muestra la película que corresponde a cada número de la lista.</p>
+ </section>
+
+ <section><h4>Pantalla de inicio</h4>
+  <p>Sube una captura de tu pantalla de inicio real. Si ya trae tus apps, apaga los iconos falsos y coloca el icono Top 100 donde quieras: mantenlo presionado un momento y arrástralo.</p>
+  <input type="file" id="hwf" accept="image/*" hidden>
+  <button class="btn" onclick="hwf.click()">Cargar foto</button><button class="btn g" id="hwx">Quitar</button>
+  <div class="sw" style="margin-top:12px"><span>Mostrar iconos falsos</span><input type="checkbox" id="hfk"></div>
+  <div class="sw" style="margin-top:10px"><span>Mostrar nombre del icono</span><input type="checkbox" id="hnm"></div>
+  <label>Tamaño del icono</label><input type="range" id="hsz" min="44" max="96" style="width:100%">
  </section>
 
  <section><h4>Fondo de la pantalla de bloqueo</h4>
@@ -189,10 +202,20 @@ pad.addEventListener("click",function(e){var b=e.target.closest("[data-d]");if(!
  if(code.length==LEN){var o=(LEN-4)/2;A=+code.substr(o,2)||100;B=+code.substr(o+2,2)||100;setTimeout(unlock,200)}});
 var FAKE=[["Mensajes","💬","#34c759"],["Calendario","📅","#fff"],["Fotos","🌸","#fff"],["Cámara","📷","#8e8e93"],["Mapas","🗺️","#5ac8fa"],["Reloj","🕒","#000"],["Notas","📝","#ffd60a"],["Tiempo","⛅","#4a90e2"],["Cartera","💳","#111"],["Ajustes","⚙️","#8e8e93"],["Música","🎵","#fa2d48"],["App Store","🅰️","#0a84ff"]];
 function icHTML(n,e,c,x){return '<div class="ic"'+(x?' id="'+x+'"':'')+'><i style="background:'+c+'">'+e+'</i><span>'+n+'</span></div>'}
-function mkHome(){var h="";FAKE.forEach(function(f,k){if(k==5)h+='<div class="ic" id="mine"><i style="background-image:url(icon.png);background-color:#7a0c1e"></i><span>Top 100</span></div>';h+=icHTML(f[0],f[1],f[2])});$("grid").innerHTML=h;
- $("dock").innerHTML=icHTML("Teléfono","📞","#34c759")+icHTML("Safari","🧭","#fff")+icHTML("Mensajes","💬","#34c759")+icHTML("Música","🎵","#fa2d48");
- $("home").style.backgroundImage=WP?'url('+WP+')':"linear-gradient(160deg,#1e3c72,#2a0845 60%,#000)";
- $("mine").addEventListener("click",openApp)}
+var HW=ld("mv_h",null),dg=false,dt=null;
+function MINE(){return '<div class="ic" id="mine"><i style="background-image:url(icon.png);background-size:cover;background-color:#7a0c1e"></i>'+(S.nl?'':'<span>Top 100</span>')+'</div>'}
+function mkHome(){
+ var nf=!!S.nofake,h="";
+ if(!nf){FAKE.forEach(function(f,k){if(k==5)h+=MINE();h+=icHTML(f[0],f[1],f[2])});$("grid").innerHTML=h;
+  $("dock").innerHTML=icHTML("Teléfono","📞","#34c759")+icHTML("Safari","🧭","#fff")+icHTML("Mensajes","💬","#34c759")+icHTML("Música","🎵","#fa2d48")}
+ else{$("grid").innerHTML=MINE();$("dock").innerHTML=""}
+ var hm=$("home");hm.classList.toggle("real",!!HW);hm.classList.toggle("nf",nf);hm.style.setProperty("--is",(S.is||62)+"px");
+ var img=HW||WP;hm.style.backgroundImage=img?'url('+img+')':"linear-gradient(160deg,#1e3c72,#2a0845 60%,#000)";
+ var m=$("mine");if(nf){m.style.left=(S.ix==null?50:S.ix)+"%";m.style.top=(S.iy==null?40:S.iy)+"%"}
+ m.addEventListener("touchstart",function(){if(!nf)return;dg=false;clearTimeout(dt);dt=setTimeout(function(){dg=true;m.style.opacity=.7;if(navigator.vibrate)navigator.vibrate(30)},550)},{passive:true});
+ m.addEventListener("touchmove",function(e){if(!nf)return;if(!dg){clearTimeout(dt);return}e.preventDefault();var t=e.touches[0];S.ix=Math.max(0,Math.min(100,t.clientX/innerWidth*100));S.iy=Math.max(0,Math.min(100,t.clientY/innerHeight*100));m.style.left=S.ix+"%";m.style.top=S.iy+"%"},{passive:false});
+ m.addEventListener("touchend",function(){clearTimeout(dt);m.style.opacity=1;if(dg){sv("mv_s",S);setTimeout(function(){dg=false},80)}});
+ m.addEventListener("click",function(){if(dg)return;openApp()})}
 function openApp(){ov={};if(S.fon){ov[A]=+S.fa;ov[B]=+S.fb}$("q").value="";build();$("home").style.display="none";var a=$("app");a.style.display="flex";a.classList.remove("open");void a.offsetWidth;a.classList.add("open")}
 function unlock(){ov={};if(S.fon){ov[A]=+S.fa;ov[B]=+S.fb}
  $("lock").style.display="none";mkHome();$("home").style.display="block"}
@@ -215,14 +238,19 @@ function avg(t,k){var s=0;for(var i=0;i<t.length;i++)s+=t[i][k];return s/t.lengt
 /* config */
 function opts(){return M.map(function(m,i){return '<option value="'+(i+1)+'">'+(i+1)+'. '+esc(S.t[i+1]||m.t)+'</option>'}).join("")}
 $("clen").onchange=function(){S.len=+this.value;sv("mv_s",S);LEN=S.len;mkDots();note("Código de "+LEN+" dígitos")};
-function openCfg(){$("clen").value=LEN;var o=opts();$("fa").innerHTML=o;$("fb").innerHTML=o;$("en").innerHTML=o;$("fa").value=S.fa;$("fb").value=S.fb;$("fon").checked=S.fon;loadE();$("cfg").style.display="block";$("cfg").scrollTop=0}
+$("hwf").onchange=function(e){if(!e.target.files[0])return;shrink(e.target.files[0],1300,.82).then(function(u){HW=u;if(sv("mv_h",HW)){mkHome();note("Foto de inicio cargada")}})};
+$("hwx").onclick=function(){HW=null;localStorage.removeItem("mv_h");mkHome();note("Foto quitada")};
+$("hfk").onchange=function(){S.nofake=!this.checked;sv("mv_s",S);mkHome()};
+$("hnm").onchange=function(){S.nl=!this.checked;sv("mv_s",S);mkHome()};
+$("hsz").oninput=function(){S.is=+this.value;sv("mv_s",S);mkHome()};
+function openCfg(){$("hfk").checked=!S.nofake;$("hnm").checked=!S.nl;$("hsz").value=S.is||62;$("clen").value=LEN;var o=opts();$("fa").innerHTML=o;$("fb").innerHTML=o;$("en").innerHTML=o;$("fa").value=S.fa;$("fb").value=S.fb;$("fon").checked=S.fon;loadE();$("cfg").style.display="block";$("cfg").scrollTop=0}
 function loadE(){var i=+$("en").value;$("et").value=S.t[i]||M[i-1].t;$("ey").value=S.y[i]||M[i-1].y}
 $("en").onchange=loadE;
 $("fon").onchange=function(){S.fon=this.checked;sv("mv_s",S)};
 $("fa").onchange=function(){S.fa=+this.value;sv("mv_s",S)};
 $("fb").onchange=function(){S.fb=+this.value;sv("mv_s",S)};
 $("esv").onclick=function(){var i=+$("en").value;S.t[i]=$("et").value;S.y[i]=+$("ey").value;sv("mv_s",S);note("Guardado");var a=$("fa").value,b=$("fb").value,e=$("en").value,o=opts();$("fa").innerHTML=o;$("fb").innerHTML=o;$("en").innerHTML=o;$("fa").value=a;$("fb").value=b;$("en").value=e}
-$("close").onclick=function(){$("cfg").style.display="none";if($("app").style.display=="flex"){ov={};if(S.fon){ov[A]=+S.fa;ov[B]=+S.fb}build()}}
+$("close").onclick=function(){$("cfg").style.display="none";if($("home").style.display=="block")mkHome();if($("app").style.display=="flex"){ov={};if(S.fon){ov[A]=+S.fa;ov[B]=+S.fb}build()}}
 function shrink(file,max,q){return new Promise(function(res){var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){var s=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=im.width*s;c.height=im.height*s;c.getContext("2d").drawImage(im,0,0,c.width,c.height);res(c.toDataURL("image/jpeg",q))};im.src=r.result};r.readAsDataURL(file)})}
 $("wpf").onchange=function(e){if(!e.target.files[0])return;shrink(e.target.files[0],1300,.82).then(function(u){WP=u;if(sv("mv_w",WP)){setWP();note("Fondo cargado")}})};
 $("wpx").onclick=function(){WP=null;localStorage.removeItem("mv_w");setWP();note("Fondo quitado")};
