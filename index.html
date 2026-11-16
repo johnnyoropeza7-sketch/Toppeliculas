@@ -76,7 +76,7 @@ html,body{height:100%;margin:0;background:#fff;font-family:-apple-system,"SF Pro
  <div id="msg">Introduce el código</div>
  <div class="dots" id="dots"></div>
  <div class="pad" id="pad"></div>
- <div class="foot"><span>Emergencia</span><span>Cancelar</span></div>
+ <div class="foot"><span>Emergencia</span><span id="cancel" style="padding:10px 0 10px 24px">Cancelar</span></div>
 </div>
 
 <div id="app">
@@ -166,6 +166,7 @@ pad.innerHTML+='<b class="e"></b><b data-d="0">0<small></small></b><b class="e">
 pad.addEventListener("touchstart",function(){},{passive:true});
 LEN=(S.len==8?8:6);
 function mkDots(){var h="";for(var i=0;i<LEN;i++)h+="<i></i>";$("dots").innerHTML=h;code=""}mkDots();
+$("cancel").addEventListener("click",function(){code="";[].forEach.call($("dots").children,function(x){x.className=""})});
 pad.addEventListener("click",function(e){var b=e.target.closest("[data-d]");if(!b||code.length>=LEN)return;code+=b.dataset.d;
  [].forEach.call($("dots").children,function(x,i){x.className=i<code.length?"on":""});
  if(code.length==LEN){var o=(LEN-4)/2;A=+code.substr(o,2)||100;B=+code.substr(o+2,2)||100;setTimeout(unlock,200)}});
