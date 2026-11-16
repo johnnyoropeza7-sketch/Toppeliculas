@@ -27,7 +27,19 @@ html,body{height:100%;margin:0;background:#fff;font-family:-apple-system,"SF Pro
 .pad b:active{background:rgba(255,255,255,.65);transition:none}
 .pad b small{font-size:9.5px;letter-spacing:2.2px;margin-top:-3px;font-weight:600;height:11px}
 .pad .e{background:none;backdrop-filter:none;-webkit-backdrop-filter:none}
-.foot{position:absolute!important;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);left:0;right:0;display:flex;justify-content:space-between;padding:0 38px;font-size:17px}
+.foot{position:absolute!important;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);left:0;right:0;display:flex;justify-content:space-between;padding:0 44px;font-size:17px;z-index:5}
+/* INICIO */
+#home{display:none;position:fixed;inset:0;z-index:7;background:#1b2a49 center/cover no-repeat;color:#fff;padding:calc(env(safe-area-inset-top,0px) + 70px) 18px 0}
+#home:before{content:"";position:absolute;inset:0;background:#0002}
+#home>*{position:relative}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px 8px;justify-items:center}
+.ic{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11.5px;text-shadow:0 1px 3px #0008;width:76px}
+.ic i{width:62px;height:62px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:32px;background-size:cover;background-position:center}
+.ic:active i{filter:brightness(.7)}
+.dock{position:absolute!important;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);background:rgba(255,255,255,.25);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:32px;padding:14px;display:flex;justify-content:space-around}
+.dock .ic span{display:none}
+#app.open{animation:zin .28s ease-out}
+@keyframes zin{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
 /* APP */
 #app{display:none;height:100%;flex-direction:column;background:#fff;color:#111}
 #bar{padding:calc(env(safe-area-inset-top,0px) + 8px) 14px 8px;display:flex;align-items:center;justify-content:space-between;background:#fff}
@@ -76,8 +88,10 @@ html,body{height:100%;margin:0;background:#fff;font-family:-apple-system,"SF Pro
  <div id="msg">Introduce el código</div>
  <div class="dots" id="dots"></div>
  <div class="pad" id="pad"></div>
- <div class="foot"><span>Emergencia</span><span id="cancel" style="padding:10px 0 10px 24px">Cancelar</span></div>
+ <div class="foot"><span>Emergencia</span><span id="cancel" style="padding:18px 22px;margin:-18px -22px;cursor:pointer;position:relative;z-index:6">Cancelar</span></div>
 </div>
+
+<div id="home"><div class="grid" id="grid"></div><div class="dock" id="dock"></div></div>
 
 <div id="app">
  <div id="bar"><div class="bt">‹</div><div id="ttl">Top 100 movies</div><div class="bt">···</div></div>
@@ -166,12 +180,20 @@ pad.innerHTML+='<b class="e"></b><b data-d="0">0<small></small></b><b class="e">
 pad.addEventListener("touchstart",function(){},{passive:true});
 LEN=(S.len==8?8:6);
 function mkDots(){var h="";for(var i=0;i<LEN;i++)h+="<i></i>";$("dots").innerHTML=h;code=""}mkDots();
-$("cancel").addEventListener("click",function(){code="";[].forEach.call($("dots").children,function(x){x.className=""})});
+function clr(e){if(e&&e.preventDefault)e.preventDefault();code="";[].forEach.call($("dots").children,function(x){x.className=""})}
+$("cancel").addEventListener("pointerdown",clr);$("cancel").addEventListener("click",clr);$("cancel").addEventListener("touchstart",clr,{passive:false});
 pad.addEventListener("click",function(e){var b=e.target.closest("[data-d]");if(!b||code.length>=LEN)return;code+=b.dataset.d;
  [].forEach.call($("dots").children,function(x,i){x.className=i<code.length?"on":""});
  if(code.length==LEN){var o=(LEN-4)/2;A=+code.substr(o,2)||100;B=+code.substr(o+2,2)||100;setTimeout(unlock,200)}});
+var FAKE=[["Mensajes","💬","#34c759"],["Calendario","📅","#fff"],["Fotos","🌸","#fff"],["Cámara","📷","#8e8e93"],["Mapas","🗺️","#5ac8fa"],["Reloj","🕒","#000"],["Notas","📝","#ffd60a"],["Tiempo","⛅","#4a90e2"],["Cartera","💳","#111"],["Ajustes","⚙️","#8e8e93"],["Música","🎵","#fa2d48"],["App Store","🅰️","#0a84ff"]];
+function icHTML(n,e,c,x){return '<div class="ic"'+(x?' id="'+x+'"':'')+'><i style="background:'+c+'">'+e+'</i><span>'+n+'</span></div>'}
+function mkHome(){var h="";FAKE.forEach(function(f,k){if(k==5)h+='<div class="ic" id="mine"><i style="background-image:url(icon.png);background-color:#7a0c1e"></i><span>Top 100</span></div>';h+=icHTML(f[0],f[1],f[2])});$("grid").innerHTML=h;
+ $("dock").innerHTML=icHTML("Teléfono","📞","#34c759")+icHTML("Safari","🧭","#fff")+icHTML("Mensajes","💬","#34c759")+icHTML("Música","🎵","#fa2d48");
+ $("home").style.backgroundImage=WP?'url('+WP+')':"linear-gradient(160deg,#1e3c72,#2a0845 60%,#000)";
+ $("mine").addEventListener("click",openApp)}
+function openApp(){ov={};if(S.fon){ov[A]=+S.fa;ov[B]=+S.fb}$("q").value="";build();$("home").style.display="none";var a=$("app");a.style.display="flex";a.classList.remove("open");void a.offsetWidth;a.classList.add("open")}
 function unlock(){ov={};if(S.fon){ov[A]=+S.fa;ov[B]=+S.fb}
- $("lock").style.display="none";$("app").style.display="flex";$("q").value="";build()}
+ $("lock").style.display="none";mkHome();$("home").style.display="block"}
 function qparse(){var v=$("q").value.trim();if(!v)return null;var t=v.split(/\D+/).filter(Boolean);if(t.length==1&&t[0].length==4)t=[t[0].slice(0,2),t[0].slice(2)];var r=[];t.forEach(function(x){var n=+x||0;if(x=="00")n=100;if(n>=1&&n<=100&&r.indexOf(n)<0)r.push(n)});return r}
 $("q").addEventListener("input",function(){build()});
 function build(){var f=qparse(),arr=[],h="";if(f)arr=f;else for(var k=1;k<=100;k++)arr.push(k);
