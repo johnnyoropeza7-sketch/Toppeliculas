@@ -3,6 +3,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Top 100">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
 <title>Top 100 movies</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -30,6 +33,9 @@ html,body{height:100%;margin:0;background:#fff;font-family:-apple-system,"SF Pro
 #bar{padding:calc(env(safe-area-inset-top,0px) + 8px) 14px 8px;display:flex;align-items:center;justify-content:space-between;background:#fff}
 #bar .bt{width:38px;height:38px;border-radius:50%;background:#f1f1f1;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#222}
 #ttl{font-size:17px;font-weight:700}
+#sb{padding:4px 14px 10px;background:#fff}
+#q{width:100%;padding:11px 14px;border-radius:12px;border:0;background:#efeff1;font-size:17px;color:#111;-webkit-user-select:text;user-select:text;outline:0}
+.none{padding:40px;text-align:center;color:#888}
 #list{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;background:#f7f7f7}
 .r{display:flex;gap:16px;padding:14px 18px;background:#f7f7f7;border-bottom:1px solid #e3e3e3;position:relative}
 .r .pw{width:84px;height:120px;flex:none;border-radius:3px;overflow:hidden;background:#ddd;position:relative;box-shadow:0 1px 3px #0003}
@@ -68,19 +74,25 @@ html,body{height:100%;margin:0;background:#fff;font-family:-apple-system,"SF Pro
 <div id="lock">
  <div id="date"></div><div id="clock"></div>
  <div id="msg">Introduce el código</div>
- <div class="dots" id="dots"><i></i><i></i><i></i><i></i></div>
+ <div class="dots" id="dots"></div>
  <div class="pad" id="pad"></div>
  <div class="foot"><span>Emergencia</span><span>Cancelar</span></div>
 </div>
 
 <div id="app">
  <div id="bar"><div class="bt">‹</div><div id="ttl">Top 100 movies</div><div class="bt">···</div></div>
+ <div id="sb"><input id="q" type="text" inputmode="decimal" placeholder="Buscar por número (ej. 25, 32)" autocomplete="off"></div>
  <div id="list"></div>
 </div>
 <div id="pred"></div>
 
 <div id="cfg">
  <h2>Configuración</h2>
+
+ <section><h4>Código de bloqueo</h4>
+  <p>6 dígitos: 1 al azar + número 1 + número 2 + 1 al azar. 8 dígitos: 2 al azar + número 1 + número 2 + 2 al azar. Ejemplo con 25 y 32: 6 dígitos → 8 2532 4, 8 dígitos → 82 2532 47.</p>
+  <select id="clen"><option value="6">6 dígitos</option><option value="8">8 dígitos</option></select>
+ </section>
 
  <section><h4>Forzaje</h4>
   <p>Cuando se marca el código, estas películas aparecen en los números elegidos por los espectadores y en la predicción.</p>
@@ -135,7 +147,7 @@ var $=function(i){return document.getElementById(i)};
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function ld(k,d){try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}}
 function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){note("No hay espacio: usa imágenes más pequeñas o la carpeta posters/");return false}}
-var S=ld("mv_s",{t:{},y:{},fon:false,fa:37,fb:82}), P=ld("mv_p",{}), WP=ld("mv_w",null), PR=ld("mv_r",null), ov={};
+var S=ld("mv_s",{t:{},y:{},fon:false,fa:37,fb:82}),LEN=0, P=ld("mv_p",{}), WP=ld("mv_w",null), PR=ld("mv_r",null), ov={};
 function note(t){$("ok").textContent=t;setTimeout(function(){$("ok").textContent=""},3000)}
 function idx(n){return ov[n]||n}
 function T(n){var i=idx(n);return S.t[i]||M[i-1].t}
@@ -152,13 +164,19 @@ var pad=$("pad"),L=["ABC","DEF","GHI","JKL","MNO","PQRS","TUV","WXYZ"],code="",A
 for(var d=1;d<=9;d++)pad.innerHTML+='<b data-d="'+d+'">'+d+'<small>'+(d>1?L[d-2]:"")+'</small></b>';
 pad.innerHTML+='<b class="e"></b><b data-d="0">0<small></small></b><b class="e"></b>';
 pad.addEventListener("touchstart",function(){},{passive:true});
-pad.addEventListener("click",function(e){var b=e.target.closest("[data-d]");if(!b||code.length>=4)return;code+=b.dataset.d;
+LEN=(S.len==8?8:6);
+function mkDots(){var h="";for(var i=0;i<LEN;i++)h+="<i></i>";$("dots").innerHTML=h;code=""}mkDots();
+pad.addEventListener("click",function(e){var b=e.target.closest("[data-d]");if(!b||code.length>=LEN)return;code+=b.dataset.d;
  [].forEach.call($("dots").children,function(x,i){x.className=i<code.length?"on":""});
- if(code.length==4){A=+code.slice(0,2)||100;B=+code.slice(2)||100;setTimeout(unlock,200)}});
+ if(code.length==LEN){var o=(LEN-4)/2;A=+code.substr(o,2)||100;B=+code.substr(o+2,2)||100;setTimeout(unlock,200)}});
 function unlock(){ov={};if(S.fon){ov[A]=+S.fa;ov[B]=+S.fb}
- $("lock").style.display="none";$("app").style.display="flex";build()}
-function build(){var h="";for(var n=1;n<=100;n++)h+='<div class="r"><div class="pw">'+cover(n)+'</div><div class="tx"><h3>'+n+'. '+esc(T(n))+'</h3><div class="m">'+Y(n)+'</div><div class="st"><b>★</b> </div><div class="w">Watch options</div></div><div class="dd">···</div></div>';
- $("list").innerHTML=h}
+ $("lock").style.display="none";$("app").style.display="flex";$("q").value="";build()}
+function qparse(){var v=$("q").value.trim();if(!v)return null;var t=v.split(/\D+/).filter(Boolean);if(t.length==1&&t[0].length==4)t=[t[0].slice(0,2),t[0].slice(2)];var r=[];t.forEach(function(x){var n=+x||0;if(x=="00")n=100;if(n>=1&&n<=100&&r.indexOf(n)<0)r.push(n)});return r}
+$("q").addEventListener("input",function(){build()});
+function build(){var f=qparse(),arr=[],h="";if(f)arr=f;else for(var k=1;k<=100;k++)arr.push(k);
+ if(!arr.length){$("list").innerHTML='<div class="none">Escribe un número del 1 al 100</div>';return}
+ arr.forEach(function(n){h+='<div class="r"><div class="pw">'+cover(n)+'</div><div class="tx"><h3>'+n+'. '+esc(T(n))+'</h3><div class="m">'+Y(n)+'</div><div class="st"><b>★</b> </div><div class="w">Watch options</div></div><div class="dd">···</div></div>'});
+ $("list").innerHTML=h;$("list").scrollTop=0}
 /* predicción */
 function showPred(){$("pred").innerHTML=PR?'<img src="'+PR+'">':'<div class="row"><div class="pc">'+cover(A)+'</div><div class="h">❤️</div><div class="pc">'+cover(B)+'</div></div><div class="cap">'+esc(T(A))+' + '+esc(T(B))+'</div>';$("pred").style.display="flex"}
 $("ttl").addEventListener("click",showPred);
@@ -171,7 +189,8 @@ document.addEventListener("touchend",function(e){if(e.touches.length==0)g=null},
 function avg(t,k){var s=0;for(var i=0;i<t.length;i++)s+=t[i][k];return s/t.length}
 /* config */
 function opts(){return M.map(function(m,i){return '<option value="'+(i+1)+'">'+(i+1)+'. '+esc(S.t[i+1]||m.t)+'</option>'}).join("")}
-function openCfg(){var o=opts();$("fa").innerHTML=o;$("fb").innerHTML=o;$("en").innerHTML=o;$("fa").value=S.fa;$("fb").value=S.fb;$("fon").checked=S.fon;loadE();$("cfg").style.display="block";$("cfg").scrollTop=0}
+$("clen").onchange=function(){S.len=+this.value;sv("mv_s",S);LEN=S.len;mkDots();note("Código de "+LEN+" dígitos")};
+function openCfg(){$("clen").value=LEN;var o=opts();$("fa").innerHTML=o;$("fb").innerHTML=o;$("en").innerHTML=o;$("fa").value=S.fa;$("fb").value=S.fb;$("fon").checked=S.fon;loadE();$("cfg").style.display="block";$("cfg").scrollTop=0}
 function loadE(){var i=+$("en").value;$("et").value=S.t[i]||M[i-1].t;$("ey").value=S.y[i]||M[i-1].y}
 $("en").onchange=loadE;
 $("fon").onchange=function(){S.fon=this.checked;sv("mv_s",S)};
